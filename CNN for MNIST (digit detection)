@@ -1,0 +1,56 @@
+from keras.models import Sequential
+from keras.layers.core import Dense,Activation,Flatten,Dropout
+from keras.layers.convolutional import Convolution2D, MaxPooling2D
+from sklearn.model_selection import train_test_split
+import pandas as pd
+import numpy as np
+import tensorflow as tf
+#x is independent data containing various images
+#y is dependent data containing classes of the images
+(x_train,y_train),(x_test,y_test) = tf.keras.datasets.mnist.load_data()
+import matplotlib.pyplot as plt
+image_index = 7777
+print(y_train[image_index])
+plt.imshow(x_train[image_index],cmap = 'Greys')
+print(x_train.shape) # it means we have 60k images of size 28 by 28
+x_train = x_train.reshape(x_train.shape[0],28,28,1)
+x_test = x_test.reshape(x_test.shape[0],28,28,1)
+
+input_shape1 = (28,28,1) # height,width,depth 
+# there are three common techniques for value normalization:
+# (x - x.min()) / (x.max() - x.min()) # values from 0 to 1
+# 2*(x - x.min()) / (x.max() - x.min()) - 1 # values from -1 to 1
+# (x - x.mean()) / x.std() # values from ? to ?, but mean at 0
+# Normalization means 2 things:
+
+# Putting the data on the same scale (Scaling)
+# Balancing the data around a point (Centering)
+# Now you could only do one without the other, but both bring their own specific benefits.
+
+# Scaling improves convergence speed and accuracy
+# Centering fights vanishing and exploding gradients, while probably also increasing convergence speed and accuracy
+# You have to understand that a neural network does a crapload of computations during training. 
+# it was a huge problem in the past to keep this stable and not have weights going to zero or towards infinity.
+#Make values as float so we get decimal after division
+x_train = x_train.astype('float32')
+x_test = x_test.astype('float32')
+#Normalize by dividing with 255
+x_train = x_train/255
+x_test = x_test/255
+print('x_train shape: ',x_train.shape)
+print('Number of images in x_train:',x_train.shape[0])
+print('x_test shape: ',x_test.shape)
+print('Number of images in x_test:',x_test.shape[0])
+from keras.models import Sequential
+from keras.layers import Dense,Conv2D,MaxPooling2D,Flatten,Dropout
+model = Sequential() #Create an object of sequential class
+model.add(Conv2D(28,kernel_size=(3,3),input_shape=input_shape1))
+model.add(MaxPooling2D(pool_size=(2,2)))
+model.add(Flatten())
+model.add(Dense(32,activation=tf.nn.relu))
+model.add(Dropout(0.2))
+model.add(Dense(10,activation=tf.nn.softmax))
+model.compile(optimizer='adam', 
+              loss='sparse_categorical_crossentropy', 
+              metrics=['accuracy'])
+model.fit(x=x_train,y=y_train, epochs=100)
